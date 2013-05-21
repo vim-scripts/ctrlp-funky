@@ -1,0 +1,50 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=4592
+
+ctrlp-funky
+============
+
+This is a ctrlp.vim extension and it picks out functions currently being edited file without ctags.
+It just searches function definition or equivalent of it, therefore some languages abstraction
+aren't accurate because of hard to parse.
+One of the advantages of this plugin is you needn't to generate tags file to jump to a function definition.
+
+This supports following filetypes:
+* c++
+* chef
+* java
+* javascript
+* markdown
+* nerdtree
+* objc
+* php
+* python
+* ruby
+* sh
+* vb
+* vim
+* zsh
+
+CONFIGURATION
+----------
+You need to make the plugin available as a ctrlp.vim extension.
+Please add 'funky' to a global variable `g:ctrlp_extensions`.
+
+    let g:ctrlp_extensions = ['funky']
+
+Reboot Vim and then you can use `:CtrlPFunky` command.
+It might be useful like these mappings:
+
+    nnoremap <Leader>fu :CtrlPFunky<Cr>
+    " narrow the list down with a word under cursor
+    nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
+
+LINK
+--------------
+
+kien/ctrlp.vim - https://github.com/kien/ctrlp.vim
+
+License
+-------
+
+Copyright (C) 2012-2013 Takahiro Yoshihara. Distributed under the MIT License.
+
