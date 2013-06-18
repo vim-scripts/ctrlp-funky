@@ -1,6 +1,6 @@
 *ctrlp-funky.txt*
 A ctrlp.vim extension - pick out functions and/or something
-Version: 0.4.1
+Version: 0.4.2
 Author:  Takahiro Yoshihara <http://github.com/tacahiroy>
 
 
@@ -22,7 +22,7 @@ INTRODUCTION					*funky-intro*
 ctrl-funky is an extension of ctrlp.vim.
 This supports following file types:
 
-* c++
+* c/c++
 * chef (resources)
 * java
 * javascript
@@ -142,10 +142,14 @@ THANKS						*funky-thanks*
   * *Benoit*    <http://github.com/saalaa>
   * *tokorom*   <http://github.com/tokorom>
   * *robmiller* <http://github.com/robmiller>
+  * *unc0*      <http://github.com/unc0>
 
 
 ==============================================================================
 CHANGELOG 					*funky-changelog*
+
+17 Jun 2013~
+  + Add C support, improved C++ pattern.
 
 23 May 2013~
   + Fix regex pattern for sh. No parentheses case can be detected.
