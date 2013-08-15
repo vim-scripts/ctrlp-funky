@@ -12,6 +12,7 @@ let s:saved_cpo = &cpo
 set cpo&vim
 
 let s:report_filter_error = get(g:, 'ctrlp_funky_report_filter_error', 0)
+let s:winnr = -1
 
 " The main variable for this extension.
 "
@@ -28,7 +29,7 @@ let s:report_filter_error = get(g:, 'ctrlp_funky_report_filter_error', 0)
 call add(g:ctrlp_ext_vars, {
   \ 'init':   'ctrlp#funky#init(s:crbufnr)',
   \ 'accept': 'ctrlp#funky#accept',
-  \ 'lname':  'Funky',
+  \ 'lname':  'funky',
   \ 'sname':  'fky',
   \ 'type':   'line',
   \ 'sort':   0
@@ -75,6 +76,7 @@ function! ctrlp#funky#init(bufnr)
 endfunction
 
 function! ctrlp#funky#funky(word)
+  let s:winnr = winnr()
   try
     if !empty(a:word)
       let default_input_save = get(g:, 'ctrlp_default_input', '')
@@ -105,7 +107,6 @@ function! ctrlp#funky#abstract(bufnr, patterns)
       let offset = get(c, 'offset', 0)
 
       redir => ilist
-        " execute 'silent! global/' . c.pattern . '/echo printf("%s \t#%s:%d:%d", getline(line(".") + offset), bufname(a:bufnr), a:bufnr, line(".") + offset)'
         execute 'silent! global/' . c.pattern . '/echo printf("%s \t#%s:%d:%d", getline(line(".") + offset), "", a:bufnr, line(".") + offset)'
       redir END
 
@@ -139,31 +140,13 @@ endfunction
 "           the values are 'e', 'v', 't' and 'h', respectively
 "  a:str    the selected string
 function! ctrlp#funky#accept(mode, str)
-  let [bufnr, lnum] = matchlist(a:str, '\m\C#.*:\(\d\+\):\(\d\+\)$')[1:2]
-  let bufname = bufname(str2nr(bufnr, 10))
-
-  let line_mode = 0
-  for ft in s:filetypes(str2nr(bufnr, 10))
-    if exists('*ctrlp#funky#'.ft.'#line_mode')
-      let line_mode = ctrlp#funky#{ft}#line_mode()
-      break
-    endif
-  endfor
-
-  " supports no named buffer
-  if line_mode || empty(bufname)
-    call ctrlp#funky#goto_line(a:mode, a:str)
-  else
-    let fpath = fnamemodify(bufname, ':p')
-    call ctrlp#acceptfile(a:mode, fpath, lnum)
-  endif
-endfunction
-
-function! ctrlp#funky#goto_line(action, line)
+  " always back to former window
   call ctrlp#exit()
-  let bufnum = matchstr(a:line, '\d\+\ze:\d\+$')
-  let lnum = matchstr(a:line, '\d\+$')
-  call setpos('.', [bufnum, lnum, 1, 0])
+
+  let bnum = matchstr(a:str, '\d\+\ze:\d\+$')
+  let lnum = matchstr(a:str, '\d\+$')
+  execute get(s:, 'winnr', 1) . 'wincmd w'
+  call setpos('.', [bnum, lnum, 1, 0])
 endfunction
 
 " Give the extension an ID

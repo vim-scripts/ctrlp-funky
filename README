@@ -8,21 +8,9 @@ It just searches function definition or equivalent of it, therefore some languag
 aren't accurate because of hard to parse.
 One of the advantages of this plugin is you needn't to generate tags file to jump to a function definition.
 
-This supports following filetypes:
-* c/c++
-* chef
-* java
-* javascript
-* markdown
-* nerdtree
-* objc
-* php
-* python
-* ruby
-* sh
-* vb
-* vim
-* zsh
+Screen shot: http://i.imgur.com/yO4PWAF.png
+
+For further information, please see the GitHub page: https://github.com/tacahiroy/ctrlp-funky
 
 CONFIGURATION
 ----------
@@ -42,7 +30,6 @@ LINK
 --------------
 
 kien/ctrlp.vim - https://github.com/kien/ctrlp.vim
-tacahiroy/ctrlp-funky - https://github.com/tacahiroy/ctrlp-funky
 
 License
 -------
