@@ -17,7 +17,6 @@ let s:sort_by_mru = get(g:, 'ctrlp_funky_sort_by_mru', 0)
 
 " Object: s:mru {{{
 let s:mru = {}
-
 let s:mru.buffers = {}
 
 function! s:mru.index(bufnr, def)
@@ -32,6 +31,25 @@ function! s:mru.prioritise(bufnr, def)
   call insert(self.buffers[a:bufnr], a:def, 0)
 endfunction
 " }}}
+
+" Object: s:cache {{{
+let s:cache = {}
+let s:cache.filetypes = {}
+
+function! s:cache.is_cached(ft)
+  return has_key(self.filetypes, a:ft)
+endfunction
+
+function! s:cache.get(ft)
+  return self.filetypes[a:ft]
+endfunction
+
+function! s:cache.save(ft, filters)
+  let self.filetypes[a:ft] = a:filters
+endfunction
+" }}}
+
+let s:errmsg = ''
 
 " The main variable for this extension.
 "
@@ -51,6 +69,7 @@ call add(g:ctrlp_ext_vars, {
   \ 'lname':  'funky',
   \ 'sname':  'fky',
   \ 'type':   'line',
+  \ 'exit':  'ctrlp#funky#exit()',
   \ 'sort':   0
   \ })
 
@@ -61,37 +80,74 @@ function! s:syntax()
   endif
 endfunction
 
+function! s:error(msg)
+    echohl ErrorMsg | echomsg a:msg | echohl NONE
+    let v:errmsg  = a:msg
+endfunction
+
 function! s:filetypes(bufnr)
   return split(getbufvar(a:bufnr, '&l:filetype'), '\.')
+endfunction
+
+function! s:has_filter(ft)
+  let func = 'autoload/ctrlp/funky/' . a:ft . '.vim'
+  return !empty(globpath(&runtimepath, func))
+endfunction
+
+function! s:filters_by_filetype(ft, bufnr)
+  let filters = []
+
+  try
+    if s:cache.is_cached(a:ft)
+      return s:cache.get(a:ft)
+    else
+      " NOTE: new API since v0.6.0
+      let filters = ctrlp#funky#{a:ft}#filters()
+    endif
+  catch /^Vim\%((\a\+)\)\=:E117/ " E117: Unknown function
+    let s:errmsg = v:exception . ':' .
+          \ 'Since ctrlp-funky v0.6.0 the internal API has been changed. ' .
+          \ 'See :h funky-api'
+    " NOTE: old API will be supported until v0.7.0
+    let filters = ctrlp#funky#{a:ft}#get_filter()
+  endtry
+
+  call s:cache.save(a:ft, filters)
+
+  return filters
 endfunction
 
 " Provide a list of strings to search in
 "
 " Return: List
 function! ctrlp#funky#init(bufnr)
-  let saved_ei = &eventignore
-  let &eventignore = 'BufLeave'
+  try
+    let saved_ei = &eventignore
+    let &eventignore = 'BufLeave'
 
-  let ctrlp_winnr = bufwinnr(bufnr(''))
-  execute bufwinnr(a:bufnr) . 'wincmd w'
-  let pos = getpos('.')
+    let ctrlp_winnr = bufwinnr(bufnr(''))
+    execute bufwinnr(a:bufnr) . 'wincmd w'
+    let pos = getpos('.')
 
-  let candidates = []
-  for ft in s:filetypes(a:bufnr)
-    if s:has_filter(ft)
-      let candidates += ctrlp#funky#{ft}#apply_filter(a:bufnr)
-    elseif s:report_filter_error
-      echoerr ft . ': filter does not exist'
-    endif
-  endfor
+    let candidates = []
+    for ft in s:filetypes(a:bufnr)
+      if s:has_filter(ft)
+        let filters = s:filters_by_filetype(ft, a:bufnr)
+        let candidates += ctrlp#funky#extract(a:bufnr, filters)
+      elseif s:report_filter_error
+        echoerr printf('%s: filters not exist', ft)
+      endif
+    endfor
 
-  call setpos('.', pos)
+    call setpos('.', pos)
 
-  execute ctrlp_winnr . 'wincmd w'
-  call s:syntax()
-  let &eventignore = saved_ei
+    execute ctrlp_winnr . 'wincmd w'
+    call s:syntax()
 
-  return candidates
+    return candidates
+  finally
+    let &eventignore = saved_ei
+  endtry
 endfunction
 
 function! ctrlp#funky#funky(word)
@@ -110,12 +166,8 @@ function! ctrlp#funky#funky(word)
   endtry
 endfunction
 
-function! s:has_filter(ft)
-  let func = 'autoload/ctrlp/funky/'.a:ft.'.vim'
-  return !empty(globpath(&runtimepath, func))
-endfunction
-
-function! ctrlp#funky#abstract(bufnr, patterns)
+" todo: needs to improved. 'if s:sort_by_mru' too much
+function! ctrlp#funky#extract(bufnr, patterns)
   try
     let candidates = []
     let ctrlp_winnr = bufwinnr(bufnr(''))
@@ -132,12 +184,16 @@ function! ctrlp#funky#abstract(bufnr, patterns)
       let offset = get(c, 'offset', 0)
 
       redir => ilist
+        " using global is fast enough
         execute 'silent! global/' . c.pattern . '/echo printf("%s \t#%s:%d:%d", getline(line(".") + offset), "", a:bufnr, line(".") + offset)'
       redir END
 
       if ilist !~# '\n\(E486: \)\?Pattern not found:'
         for l in split(ilist, '\n')
-          let filtered = substitute(l, get(c.filter, 0, ''), get(c.filter, 1, ''), get(c.filter, 2, ''))
+          " NOTE: until v0.7.0 both old and new API will be supported
+          let formatter = has_key(c, 'formatter') ? c.formatter : c.filter
+          let [pat, str, flags] = [get(formatter, 0, ''), get(formatter, 1, ''), get(formatter, 2, '')]
+          let filtered = substitute(l, pat, str, flags)
 
           if s:sort_by_mru
             let pos = s:mru.index(a:bufnr, s:definition(filtered))
@@ -154,12 +210,17 @@ function! ctrlp#funky#abstract(bufnr, patterns)
     endfor
 
     let sorted = sort(candidates, function('s:sort_candidates'))
-    let prior = map(sort(copy(mru), function('s:sort_mru')), 'v:val[0]')
+    let prior = map(sort(mru, function('s:sort_mru')), 'v:val[0]')
 
     return prior + sorted
   finally
     execute ctrlp_winnr . 'wincmd w'
   endtry
+endfunction
+
+" OLD API: this will be supported until v0.7.0
+function! ctrlp#funky#abstract(bufnr, patterns)
+  return ctrlp#funky#extract(a:bufnr, a:patterns)
 endfunction
 
 function! s:definition(line)
@@ -196,6 +257,10 @@ function! ctrlp#funky#accept(mode, str)
   if !s:sort_by_mru | return | endif
 
   call s:mru.prioritise(bufnr, s:definition(a:str))
+endfunction
+
+function!ctrlp#funky#exit()
+  if !empty(s:errmsg) | call s:error(s:errmsg) | endif
 endfunction
 
 " Give the extension an ID
