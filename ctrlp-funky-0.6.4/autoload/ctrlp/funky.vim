@@ -70,6 +70,7 @@ call add(g:ctrlp_ext_vars, {
   \ 'sname':  'fky',
   \ 'type':   'line',
   \ 'exit':  'ctrlp#funky#exit()',
+  \ 'nolim':  1,
   \ 'sort':   0
   \ })
 
@@ -92,6 +93,10 @@ endfunction
 function! s:has_filter(ft)
   let func = 'autoload/ctrlp/funky/' . a:ft . '.vim'
   return !empty(globpath(&runtimepath, func))
+endfunction
+
+function! s:has_post_extract_hook(ft)
+  return exists('*ctrlp#funky#' . a:ft . '#post_extract_hook')
 endfunction
 
 function! s:filters_by_filetype(ft, bufnr)
@@ -134,6 +139,9 @@ function! ctrlp#funky#init(bufnr)
       if s:has_filter(ft)
         let filters = s:filters_by_filetype(ft, a:bufnr)
         let candidates += ctrlp#funky#extract(a:bufnr, filters)
+        if s:has_post_extract_hook(ft)
+          call ctrlp#funky#{ft}#post_extract_hook(candidates)
+        endif
       elseif s:report_filter_error
         echoerr printf('%s: filters not exist', ft)
       endif
