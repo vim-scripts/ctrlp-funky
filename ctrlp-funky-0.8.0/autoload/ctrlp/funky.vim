@@ -15,6 +15,8 @@ let s:report_filter_error = get(g:, 'ctrlp_funky_report_filter_error', 0)
 let s:winnr = -1
 let s:sort_by_mru = get(g:, 'ctrlp_funky_sort_by_mru', 0)
 
+let s:custom_hl_list = {}
+
 " Object: s:mru {{{
 let s:mru = {}
 let s:mru.buffers = {}
@@ -78,6 +80,11 @@ function! s:syntax()
   if !ctrlp#nosy()
     call ctrlp#hicheck('CtrlPTabExtra', 'Comment')
     syn match CtrlPTabExtra '\t#.*:\d\+:\d\+$'
+
+    for [k,v] in items(s:custom_hl_list)
+      call ctrlp#hicheck(k, v.to_group)
+      execute printf('syn match %s "%s"', k, v.pat)
+    endfor
   endif
 endfunction
 
@@ -102,20 +109,12 @@ endfunction
 function! s:filters_by_filetype(ft, bufnr)
   let filters = []
 
-  try
-    if s:cache.is_cached(a:ft)
-      return s:cache.get(a:ft)
-    else
-      " NOTE: new API since v0.6.0
-      let filters = ctrlp#funky#{a:ft}#filters()
-    endif
-  catch /^Vim\%((\a\+)\)\=:E117/ " E117: Unknown function
-    let s:errmsg = v:exception . ':' .
-          \ 'Since ctrlp-funky v0.6.0 the internal API has been changed. ' .
-          \ 'See :h funky-api'
-    " NOTE: old API will be supported until v0.7.0
-    let filters = ctrlp#funky#{a:ft}#get_filter()
-  endtry
+  if s:cache.is_cached(a:ft)
+    return s:cache.get(a:ft)
+  else
+    " NOTE: new API since v0.6.0
+    let filters = ctrlp#funky#{a:ft}#filters()
+  endif
 
   call s:cache.save(a:ft, filters)
 
@@ -198,8 +197,7 @@ function! ctrlp#funky#extract(bufnr, patterns)
 
       if ilist !~# '\n\(E486: \)\?Pattern not found:'
         for l in split(ilist, '\n')
-          " NOTE: until v0.7.0 both old and new API will be supported
-          let formatter = has_key(c, 'formatter') ? c.formatter : c.filter
+          let formatter = c.formatter
           let [pat, str, flags] = [get(formatter, 0, ''), get(formatter, 1, ''), get(formatter, 2, '')]
           let filtered = substitute(l, pat, str, flags)
 
@@ -224,11 +222,6 @@ function! ctrlp#funky#extract(bufnr, patterns)
   finally
     execute ctrlp_winnr . 'wincmd w'
   endtry
-endfunction
-
-" OLD API: this will be supported until v0.7.0
-function! ctrlp#funky#abstract(bufnr, patterns)
-  return ctrlp#funky#extract(a:bufnr, a:patterns)
 endfunction
 
 function! s:definition(line)
@@ -262,9 +255,47 @@ function! ctrlp#funky#accept(mode, str)
   execute get(s:, 'winnr', 1) . 'wincmd w'
   call setpos('.', [bufnr, lnum, 1, 0])
 
+  call s:after_jump()
+
   if !s:sort_by_mru | return | endif
 
   call s:mru.prioritise(bufnr, s:definition(a:str))
+endfunction
+
+function! s:after_jump()
+  let pattern = '^\m\C\(z[xoOv]\)\?\(z[zt]\)\?$'
+  let after_jump = get(g:, 'ctrlp_funky_after_jump', 'zxzz')
+
+  " parse setting.
+  if empty(after_jump)
+    return
+  elseif type(after_jump) == type('')
+    let action = after_jump
+  elseif type(after_jump) == type({})
+    let action = get(after_jump, &filetype,
+          \ get(after_jump, 'default', 'zxzz')
+          \ )
+  else
+    echoerr 'Invalid type for g:ctrlp_funky_after_jump, need a string or dict'
+    return
+  endif
+
+  if empty(action) | return | endif
+
+  " verify action string pattern.
+  if action !~ pattern
+    echoerr 'Invalid content in g:ctrlp_funcky_after_jump, need "z[xov]z[zt]"'
+    return
+  else
+    let matched = matchlist(action, pattern)
+    let [foldview, scrolling] = matched[1:2]
+  endif
+
+  if !&foldenable || foldlevel(line('.')) == 0
+    let action = scrolling
+  endif
+
+  silent! execute 'normal! ' . action . '0'
 endfunction
 
 function!ctrlp#funky#exit()
@@ -276,6 +307,10 @@ let s:id = g:ctrlp_builtins + len(g:ctrlp_ext_vars)
 " Allow it to be called later
 function! ctrlp#funky#id()
   return s:id
+endfunction
+
+function ctrlp#funky#highlight(pat, from_group, to_group)
+  let s:custom_hl_list[a:from_group] = { 'pat': a:pat, 'to_group': a:to_group }
 endfunction
 
 let &cpo = s:saved_cpo
