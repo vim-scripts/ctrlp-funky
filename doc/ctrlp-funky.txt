@@ -1,6 +1,6 @@
 *ctrlp-funky.txt* *ctrlp-funky*
 A ctrlp.vim extension - navigate and jump to function defs
-Version: 0.8.2
+Version: 0.8.4
 Author:  Takahiro Yoshihara <https://github.com/tacahiroy>
 
 
@@ -30,6 +30,7 @@ This supports following file types:
 * html/xhtml
 * java
 * javascript
+* jinja
 * lua
 * markdown
 * nerdtree
@@ -260,21 +261,36 @@ THANKS						*ctrlp-funky-thanks*
 
   * *kien* <http://github.com/kien> - the author of ctrlp.vim
 
-  * *pydave*    <https://github.com/pydave>
-  * *curist*    <https://github.com/curist>
-  * *Benoit*    <https://github.com/saalaa>
-  * *tokorom*   <https://github.com/tokorom>
-  * *robmiller* <https://github.com/robmiller>
-  * *unc0*      <https://github.com/unc0>
-  * *hlissner*  <https://github.com/hlissner>
-  * *mephux*    <https://github.com/mephux>
-  * *dusans*    <https://github.com/dusans>
-  * *kirstein*  <https://github.com/kirstein>
-  * *mmazer*    <https://github.com/mmazer>
+  * *pydave*      <https://github.com/pydave>
+  * *curist*      <https://github.com/curist>
+  * *Benoit*      <https://github.com/saalaa>
+  * *tokorom*     <https://github.com/tokorom>
+  * *robmiller*   <https://github.com/robmiller>
+  * *unc0*        <https://github.com/unc0>
+  * *hlissner*    <https://github.com/hlissner>
+  * *mephux*      <https://github.com/mephux>
+  * *dusans*      <https://github.com/dusans>
+  * *kirstein*    <https://github.com/kirstein>
+  * *mmazer*      <https://github.com/mmazer>
+  * *vitalk*      <https://github.com/vitalk>
+  * *dingmingxin* <https://github.com/dingmingxin>
 
 
 ==============================================================================
 CHANGELOG 					*ctrlp-funky-changelog*
+
+
+22 Apr 2014~
+  + Add support for returning by reference function for PHP (#31)
+    by |dingmingxin|
+
+20 Apr 2014~
+  + 0.8.4: Fix performance issue for python (#30)
+    by |dusans|
+
+10 Mar 2014~
+  + 0.8.3: Add Jinja template support. (#29)
+    by |vitalk|
 
 22 Feb 2014~
   + 0.8.2: Add html and xhtml support. (#28)
@@ -399,7 +415,7 @@ Initial release: 25 Feb 2012~
 ==============================================================================
 LICENSE						*ctrlp-funky-license*
 
-|ctrlp-funky| is released under the MIT License.
+|ctrlp-funky| is distributed under the MIT License.
 
 Copyright (c) 2012-2014 Takahiro Yoshihara
 
