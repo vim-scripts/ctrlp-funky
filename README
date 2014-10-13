@@ -8,7 +8,7 @@ It just searches function definition or equivalent of it, therefore some languag
 aren't accurate because of hard to parse.
 One of the advantages of this plugin is you needn't to generate tags file to jump to a function definition.
 
-Screen shot: http://i.imgur.com/yO4PWAF.png
+Screenshot: http://i.imgur.com/yO4PWAF.png
 
 For further information, please see the GitHub page: https://github.com/tacahiroy/ctrlp-funky
 
@@ -19,8 +19,8 @@ Please add 'funky' to a global variable `g:ctrlp_extensions`.
 
     let g:ctrlp_extensions = ['funky']
 
-Reboot Vim and then you can use `:CtrlPFunky` command.
-It might be useful like these mappings:
+Restart Vim and then you can use `:CtrlPFunky` command.
+It might be useful defining key mappings below:
 
     nnoremap <Leader>fu :CtrlPFunky<Cr>
     " narrow the list down with a word under cursor
@@ -30,9 +30,4 @@ LINK
 --------------
 
 kien/ctrlp.vim - https://github.com/kien/ctrlp.vim
-
-License
--------
-
-Copyright (C) 2012-2013 Takahiro Yoshihara. Distributed under the MIT License.
 
