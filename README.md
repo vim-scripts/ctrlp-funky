@@ -15,15 +15,18 @@ Currently, following filetypes are supported:
 * chef
 * cmm (TRACE32)
 * coffee-script
+* dart
 * elixir
 * go
 * html/xhtml
 * java
 * javascript
 * jinja (template engine for Python)
+* LaTeX
 * lua
 * make (Makefile)
 * markdown
+* moon (MoonScript)
 * nerdtree
 * objc (Objective-C)
 * perl

@@ -1,6 +1,6 @@
 *ctrlp-funky.txt* *ctrlp-funky*
 A ctrlp.vim extension - navigate and jump to function defs
-Version: 0.10.0
+Version: 0.10.1
 Author:  Takahiro Yoshihara <https://github.com/tacahiroy>
 
 
@@ -28,6 +28,7 @@ This supports following file types:
 * chef (Resources)
 * cmm (TRACE32)
 * coffee-script
+* dart
 * elixir
 * go (golang)
 * html/xhtml
@@ -37,6 +38,7 @@ This supports following file types:
 * lua
 * make (Makefile)
 * markdown
+* moon (MoonScript)
 * nerdtree
 * objc (Objective-C)
 * perl
@@ -45,6 +47,7 @@ This supports following file types:
 * ruby
 * scala
 * sh (bash, dash and zsh)
+* tex (LaTeX)
 * typescript
 * yaml
 * vb (Visual Basic)
@@ -367,10 +370,38 @@ THANKS						*ctrlp-funky-thanks*
   * *jean*            <https://github.com/jean>
   * *Komnomnomnom*    <https://github.com/Komnomnomnom>
   * *timfeirg*        <https://github.com/timfeirg>
+  * *h14i*            <https://github.com/h14i>
+  * *ggVGc*           <https://github.com/ggVGc>
+  * *senft*           <https://github.com/senft>
+  * *bmenant*         <https://github.com/bmenant>
+  * *fufler*          <https://github.com/fufler>
 
 
 ==============================================================================
 CHANGELOG 					*ctrlp-funky-changelog*
+
+16 Apr 2015~
+  + Fix E688 problem with non English locales (#38)
+    reported by |bmenant| / fixed by |fufler|
+
+12 Apr 2015~
+  + Add basic LaTeX support
+    by |senft|
+
+9 Apr 2015~
+  + Add basic Dart support
+
+31 Mar 2015~
+  + Improve TypeScript support (#64)
+    by |prabirshrestha|
+
+6 Mar 2015~
+  + Add MoonScript (moon) support (#62)
+    by |ggVGc|
+
+9 Feb 2015~
+  + Fix function name for typescript (#60)
+    by |h14i|
 
 8 Feb 2015~
   + Fix error on accept() if sort_by_mru is enabled (#59)

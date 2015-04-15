@@ -194,7 +194,7 @@ function! ctrlp#funky#init(bufnr)
           let filters = s:filters_by_filetype(ft, bufnr)
           let st = reltime()
           let candidates += ctrlp#funky#extract(bufnr, filters)
-          call s:fu.debug('Extract: ' . reltimestr(reltime(st)))
+          call s:fu.debug('Extract: ' . len(candidates) . ' lines in ' . reltimestr(reltime(st)))
           if s:has_post_extract_hook(ft)
             call ctrlp#funky#ft#{ft}#post_extract_hook(candidates)
           endif
@@ -233,7 +233,7 @@ function! ctrlp#funky#funky(word)
   endtry
 endfunction
 
-" TODO: this fat function needs to be improved. 'if s:sort_by_mru' too much
+" TODO: this fat function needs to be improved. 'if s:sort_by_mru' too much etc.
 function! ctrlp#funky#extract(bufnr, patterns)
   try
     let candidates = []
@@ -278,11 +278,8 @@ function! ctrlp#funky#extract(bufnr, patterns)
         execute 'silent! global/' . c.pattern . '/echo printf("%s \t#%s:%d:%d", getline(line(".") + offset), "", a:bufnr, line(".") + offset)'
       redir END
 
-      if ilist !~# '\n\(E486: \)\?Pattern not found:'
+      if ilist =~# '\s\t#:\d\+:\d\+$'
         for l in split(ilist, '\n')
-          if l =~# '^ \t#:\d\+:\d\+$'
-            continue
-          endif
           let [left, right] = split(l, '\ze \t#:\d\+:\d\+')
           let formatter = c.formatter
           let [pat, str, flags] = [get(formatter, 0, ''), get(formatter, 1, ''), get(formatter, 2, '')]
